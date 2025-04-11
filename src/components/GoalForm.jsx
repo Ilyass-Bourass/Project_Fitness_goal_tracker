@@ -1,46 +1,74 @@
-import React, { useState } from 'react'
+import React, { useState } from 'react';
 
-export default function GoalForm() {
+function GoalForm({ addGoal }) {
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    category: 'steps', // Par défaut: steps, workout, water
+    target: '',
+    unit: 'pas' // Unité par défaut pour steps
+  });
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: value
+    });
     
-  const [Goal,setGoal]=useState({
-    title:'',
-    description:'',
-    category: 'steps',
-    unit:'pas'
-  });
+    // Auto-set unit based on category
+    if (name === 'category') {
+      let unit = '';
+      switch(value) {
+        case 'steps':
+          unit = 'pas';
+          break;
+        case 'workout':
+          unit = 'minutes';
+          break;
+        case 'water':
+          unit = 'verres';
+          break;
+        default:
+          unit = '';
+      }
+      setFormData(prev => ({ ...prev, unit }));
+    }
+  };
 
-  const [goalsList,setGoalsList]=useState(()=>{
-    const saved=localStorage.getItem('goals');
-    return saved ? JSON.parse(saved) : [];
-  });
-
-  const handelSubmit =(e)=>{
+  const handleSubmit = (e) => {
     e.preventDefault();
-    console.log('avant',goalsList);
-    const updatedGoals = [...goalsList, Goal];
-    console.log(updatedGoals);
+    // Validation
+    if (!formData.title || !formData.target) {
+      alert('Veuillez remplir tous les champs obligatoires');
+      return;
+    }
 
-    localStorage.setItem('goals', JSON.stringify(updatedGoals));
+    // Ajouter le nouvel objectif
+    addGoal(formData);
+    
+    // Réinitialiser le formulaire
+    setFormData({
+      title: '',
+      description: '',
+      category: 'steps',
+      target: '',
+      unit: 'pas'
+    });
+  };
 
-  }
-
-  const hadelChaange =(e)=>{
-    const {name,value}=e.target;
-    setGoal({...Goal,[name]:value});
-  }
-
-    return (
+  return (
     <div className="goal-form">
       <h3>Ajouter un nouvel objectif</h3>
-      <form onSubmit={handelSubmit}>
+      <form onSubmit={handleSubmit}>
         <div className="form-group">
           <label>
             Titre:
             <input
               type="text"
               name="title"
-              onChange={hadelChaange}
-              value={Goal.title}
+              value={formData.title}
+              onChange={handleChange}
               placeholder="Ex: Marcher 10 000 pas"
               required
             />
@@ -52,8 +80,8 @@ export default function GoalForm() {
             Description:
             <textarea
               name="description"
-              value={Goal.description}
-              onChange={hadelChaange}
+              value={formData.description}
+              onChange={handleChange}
               placeholder="Description de votre objectif"
             />
           </label>
@@ -62,7 +90,7 @@ export default function GoalForm() {
         <div className="form-group">
           <label>
             Catégorie:
-            <select name="category" onChange={hadelChaange} value={goalsList.category}>
+            <select name="category" value={formData.category} onChange={handleChange}>
               <option value="steps">Pas</option>
               <option value="workout">Entraînement</option>
               <option value="water">Eau</option>
@@ -77,24 +105,26 @@ export default function GoalForm() {
               <input
                 type="number"
                 name="target"
+                value={formData.target}
+                onChange={handleChange}
                 placeholder="Valeur cible"
-                value={Goal.target}
-                onChange={hadelChaange}
                 required
               />
               <input
                 type="text"
                 name="unit"
-                value={Goal.unit}
-                onChange={hadelChaange}
+                value={formData.unit}
+                onChange={handleChange}
                 placeholder="Unité"
               />
             </div>
           </label>
         </div>
         
-        <button type='submit'>Ajouter objectif</button>
+        <button type="submit">Ajouter objectif</button>
       </form>
     </div>
   );
 }
+
+export default GoalForm;
